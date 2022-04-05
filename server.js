@@ -1,3 +1,5 @@
+// Compare this code to the server.js file, which utilizes lodash. The code here (express) is more streamlined and easier to edit.
+
 const http = require("http");
 const fs = require("fs");
 const _ = require("lodash"); // can call it whatever we want, but common practice is to just use the underscore

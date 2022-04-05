@@ -20,6 +20,8 @@
   },
   "homepage": "https://github.com/cdmitchener/node-crash-course#readme",
   "dependencies": {
+    "ejs": "^3.1.6",
+    "express": "^4.17.3",
     "lodash": "^4.17.21"
   }
 }

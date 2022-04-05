@@ -1,0 +1,32 @@
+<html lang="en">
+
+<%- include('./partials/head.ejs') %>
+
+    <body>
+
+        <%- include('./partials/nav.ejs') %>
+
+            <div class="blogs content">
+                <h2>All Blogs</h2>
+
+                <!-- Need to check if there is a 0 value so that it doesn't cycle through if there isn't anything there to begin
+        width -->
+                <% if (blogs.length> 0) { %>
+                    <% blogs.forEach(blog=> { %>
+                        <h3 class="title">
+                            <%= blog.title %>
+                        </h3>
+                        <p class="snippet">
+                            <%= blog.snippet %>
+                        </p>
+                        <% }) %>
+                            <% } else { %>
+                                <p>There are no blogs to display...</p>
+                                <% } %>
+            </div>
+
+            <%- include('./partials/footer.ejs') %>
+
+    </body>
+
+</html>
