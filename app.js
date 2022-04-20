@@ -1,33 +1,91 @@
 const express = require("express");
+const morgan = require("morgan");
+const mongoose = require("mongoose");
+const Blog = require("./models/blog");
+const { render } = require("express/lib/response");
 
 // express app
 const app = express();
+
+// Connect to MongoDB
+const dbuRI =
+  "mongodb+srv://cdmitch:sdev255@sdev255.eptvt.mongodb.net/node-tutorial?retryWrites=true&w=majority";
+// Asynchronous task
+mongoose
+  .connect(dbuRI)
+  // listen for requests after successful connection to DB
+  .then((result) => app.listen(3000))
+  .catch((err) => console.log(err));
 
 // Register view engine -- EJS will be used to view our templates. The default value where it will look is a folder called 'views'.
 app.set("view engine", "ejs");
 // What if we don't want to name the file 'views'? Below is how to specify the folder name.
 // app.set("views", "myviews");
 
-// listen for requests
-app.listen(3000);
+// Middleware & static files
+app.use(express.static("public"));
+app.use(express.urlencoded({ extended: true }));
+app.use(morgan("dev"));
 
+// // Mongoose and MongoDB sandbox routes
+// app.get("/add-blog", (req, res) => {
+//   const blog = new Blog({
+//     title: "New Blog",
+//     snippet: "About my new blog",
+//     body: "More about my new blog...",
+//   });
+
+//   blog
+//     .save()
+//     // Send to collection in DB
+//     .then((result) => {
+//       res.send(result);
+//     })
+//     .catch((err) => {
+//       console.log(err);
+//     });
+// });
+
+// app.get("/all-blogs", (req, res) => {
+//   Blog.find()
+//     .then((result) => {
+//       res.send(result);
+//     })
+//     .catch((err) => {
+//       console.log(err);
+//     });
+// });
+
+// app.get("/single-blog", (req, res) => {
+//   Blog.findById("626066fc460464abda67f05b")
+//     .then((result) => {
+//       res.send(result);
+//     })
+//     .catch((err) => {
+//       console.log(err);
+//     });
+// });
+
+// Routes
 app.get("/", (req, res) => {
-  const blogs = [
-    {
-      title: "Yoshi finds eggs",
-      snippet: "Lorem ipsum dolor sit amet consectetur",
-    },
-    {
-      title: "Mario finds stars",
-      snippet: "Lorem ipsum dolor sit amet consectetur",
-    },
-    {
-      title: "How to defeat bowser",
-      snippet: "Lorem ipsum dolor sit amet consectetur",
-    },
-  ];
-  // the object "Home" held in the title variable can be accessed from the inde.ejs file
-  res.render("index", { title: "Home", blogs });
+  // const blogs = [
+  //   {
+  //     title: "Yoshi finds eggs",
+  //     snippet: "Lorem ipsum dolor sit amet consectetur",
+  //   },
+  //   {
+  //     title: "Mario finds stars",
+  //     snippet: "Lorem ipsum dolor sit amet consectetur",
+  //   },
+  //   {
+  //     title: "How to defeat bowser",
+  //     snippet: "Lorem ipsum dolor sit amet consectetur",
+  //   },
+  // ];
+  // // the object "Home" held in the title variable can be accessed from the inde.ejs file
+  // res.render("index", { title: "Home", blogs });
+
+  res.redirect("/blogs");
 });
 
 app.get("/about", (req, res) => {
@@ -35,8 +93,57 @@ app.get("/about", (req, res) => {
   res.render("about", { title: "About" });
 });
 
+// Blog routes
 app.get("/blogs/create", (req, res) => {
   res.render("create", { title: "Create a New Blog" });
+});
+
+app.get("/blogs", (req, res) => {
+  Blog.find()
+    // -1 means descending order
+    .sort({ createdAt: -1 })
+    .then((result) => {
+      res.render("index", { title: "All Blogs", blogs: result });
+    })
+    .catch((err) => {
+      console.log(err);
+    });
+});
+
+// Uses middleware to send form data
+app.post("/blogs", (req, res) => {
+  const blog = new Blog(req.body);
+
+  blog
+    .save()
+    .then((result) => {
+      res.redirect("/blogs");
+    })
+    .catch((err) => {
+      console.log(err);
+    });
+});
+
+app.get("/blogs/:id", (req, res) => {
+  const id = mongoose.Types.ObjectId(req.params.id.trim());
+  Blog.findById(id)
+    .then((result) => {
+      res.render("details", { blog: result, title: "Blog Details" });
+    })
+    .catch((err) => {
+      console.log(err);
+    });
+});
+
+app.delete("/blogs/:id", (req, res) => {
+  const id = mongoose.Types.ObjectId(req.params.id.trim());
+  Blog.findByIdAndDelete(id)
+    .then((result) => {
+      res.json({ redirect: "/blogs" });
+    })
+    .catch((err) => {
+      console.log(err);
+    });
 });
 
 // 404 page
