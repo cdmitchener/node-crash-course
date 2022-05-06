@@ -1,8 +1,7 @@
 const express = require("express");
 const morgan = require("morgan");
 const mongoose = require("mongoose");
-const Blog = require("./models/blog");
-const { render } = require("express/lib/response");
+const blogRoutes = require("./routes/blogRoutes");
 
 // express app
 const app = express();
@@ -93,63 +92,13 @@ app.get("/about", (req, res) => {
   res.render("about", { title: "About" });
 });
 
-// Blog routes
-app.get("/blogs/create", (req, res) => {
-  res.render("create", { title: "Create a New Blog" });
-});
-
-app.get("/blogs", (req, res) => {
-  Blog.find()
-    // -1 means descending order
-    .sort({ createdAt: -1 })
-    .then((result) => {
-      res.render("index", { title: "All Blogs", blogs: result });
-    })
-    .catch((err) => {
-      console.log(err);
-    });
-});
-
-// Uses middleware to send form data
-app.post("/blogs", (req, res) => {
-  const blog = new Blog(req.body);
-
-  blog
-    .save()
-    .then((result) => {
-      res.redirect("/blogs");
-    })
-    .catch((err) => {
-      console.log(err);
-    });
-});
-
-app.get("/blogs/:id", (req, res) => {
-  const id = mongoose.Types.ObjectId(req.params.id.trim());
-  Blog.findById(id)
-    .then((result) => {
-      res.render("details", { blog: result, title: "Blog Details" });
-    })
-    .catch((err) => {
-      console.log(err);
-    });
-});
-
-app.delete("/blogs/:id", (req, res) => {
-  const id = mongoose.Types.ObjectId(req.params.id.trim());
-  Blog.findByIdAndDelete(id)
-    .then((result) => {
-      res.json({ redirect: "/blogs" });
-    })
-    .catch((err) => {
-      console.log(err);
-    });
-});
+// scope the routes
+app.use("/blogs", blogRoutes);
 
 // 404 page
 // Needs to be lsited last because the program runs top to bottom. If a result is found it will stop running through the code. The use() method says use this fxn for every incoming request. It's not scoped to a specific URL because it's regardless of the URL.
 app.use((req, res) => {
-  //res.sendFile("./views/404.html", { root: __dirname });
+  // res.sendFile("./views/404.html", { root: __dirname });
 
   // Program does not know that the above is a 404 error based on just the name of the file, so we have to manually send the code.
   res.status(404).render("404", { title: "404" });
